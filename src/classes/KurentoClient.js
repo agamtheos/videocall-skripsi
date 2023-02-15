@@ -20,7 +20,7 @@ module.exports = function KurentoClient() {
     
         kurento(argv.ws_uri, function(error, _kurentoClient) {
             if (error) {
-                var message = 'Coult not find media server at address ' + argv.ws_uri;
+                let message = 'Coult not find media server at address ' + argv.ws_uri;
                 return callback(message + ". Exiting with error " + error);
             }
     

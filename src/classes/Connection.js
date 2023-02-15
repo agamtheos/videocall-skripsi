@@ -43,7 +43,7 @@ module.exports = {
             caller.sdpOffer = sdpOffer
             callee.peer = from;
             caller.peer = to;
-            var message = {
+            let message = {
                 id: 'incomingCall',
                 from: from
             };
@@ -53,7 +53,7 @@ module.exports = {
                 rejectCause = "Error " + exception;
             }
         }
-        var message  = {
+        let message  = {
             id: 'callResponse',
             response: 'rejected: ',
             message: rejectCause
@@ -65,7 +65,7 @@ module.exports = {
         function onError(callerReason, calleeReason) {
             if (pipeline) MediaPipeline.release();
             if (caller) {
-                var callerMessage = {
+                let callerMessage = {
                     id: 'callResponse',
                     response: 'rejected'
                 }
@@ -73,7 +73,7 @@ module.exports = {
                 caller.sendMessage(callerMessage);
             }
     
-            var calleeMessage = {
+            let calleeMessage = {
                 id: 'stopCommunication'
             };
             if (calleeReason) calleeMessage.message = calleeReason;
@@ -135,17 +135,17 @@ module.exports = {
             return;
         }
     
-        var pipeline = pipelines[sessionId];
+        let pipeline = pipelines[sessionId];
         Pipelines.removePipeline(sessionId);
         pipeline.release();
-        var stopperUser = userRegistry.getById(sessionId);
-        var stoppedUser = userRegistry.getByName(stopperUser.peer);
+        let stopperUser = userRegistry.getById(sessionId);
+        let stoppedUser = userRegistry.getByName(stopperUser.peer);
         stopperUser.peer = null;
     
         if (stoppedUser) {
             stoppedUser.peer = null;
             delete pipelines[stoppedUser.id];
-            var message = {
+            let message = {
                 id: 'stopCommunication',
                 message: 'remote user hanged out'
             }
