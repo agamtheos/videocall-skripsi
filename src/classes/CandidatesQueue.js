@@ -14,8 +14,6 @@ module.exports = function CandidatesQueue() {
     }
 
     this.addCandidateQueueWithData = (sessionId, candidate) => {
-        console.log(candidatesQueue)
-        console.log(candidatesQueue[sessionId])
         candidatesQueue[sessionId].push(candidate);
     }
 
