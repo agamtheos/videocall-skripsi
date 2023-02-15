@@ -68,7 +68,7 @@ wss.on('connection', function (ws) {
             Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, ws);
             break;
         case 'stop':
-
+            Connection.stop(sessionId);
             break;
         case 'onIceCandidate':
             Connection.onIceCandidate(sessionId, message.candidate);
