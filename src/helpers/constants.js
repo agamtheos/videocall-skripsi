@@ -14,4 +14,5 @@ exports.USER_ROLE = {
       return `Invalid or missing parameter ${data}`
     },
     already_exist: 'Already exist',
+    invalid_token: 'Invalid token',
   }
