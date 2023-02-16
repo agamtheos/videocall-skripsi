@@ -3,13 +3,18 @@ const express = require('express');
 const ws = require('ws');
 const fs = require('fs');
 const https = require('https');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const { json, urlencoded } = require('body-parser')
 
-const env = require('./config/env');
+const Router = require('./routes/index.router');
 const UserRegistryClass = require('./classes/UserRegistry');
-const CandidatesQueueClass = require('./classes/CandidatesQueue');
-const PipelinesClass = require('./classes/Pipelines');
 const Connection = require('./classes/Connection');
 const response = require('./helpers/response');
+const env = require('./config/env');
+
+require('./config/database')
 
 const UserRegistry = new UserRegistryClass();
 
@@ -22,7 +27,13 @@ const options = {
 
 const app = express();
 
+app.use(cors({credentials: true, origin: true}));
+app.use(helmet());
+app.use(compression());
+app.use(json({limit: '50mb'}));
+app.use(urlencoded({ limit: '50mb', extended: true }));
 app.use(response)
+app.use('/api', Router)
 
 const server = https.createServer(options, app).listen(env.port, function () {
     console.log('Server is running on port', env.port);
