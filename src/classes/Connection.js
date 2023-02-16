@@ -138,8 +138,8 @@ module.exports = {
         let pipeline = pipelines[sessionId];
         Pipelines.removePipeline(sessionId);
         pipeline.release();
-        let stopperUser = userRegistry.getById(sessionId);
-        let stoppedUser = userRegistry.getByName(stopperUser.peer);
+        let stopperUser = UserRegistry.getById(sessionId);
+        let stoppedUser = UserRegistry.getByName(stopperUser.peer);
         stopperUser.peer = null;
     
         if (stoppedUser) {
@@ -152,7 +152,7 @@ module.exports = {
             stoppedUser.sendMessage(message)
         }
     
-        clearCandidatesQueue(sessionId);
+        CandidatesQueue.clearCandidatesQueue(sessionId);
     },
     onIceCandidate(sessionId, _candidate) {
         const candidate = kurento.getComplexType('IceCandidate')(_candidate);
