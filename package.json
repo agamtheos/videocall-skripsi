@@ -14,8 +14,13 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.1",
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "helmet": "^6.0.1",
+    "jsonwebtoken": "^9.0.0",
     "kurento-client": "git+https://github.com/Kurento/kurento-client-js.git",
     "minimist": "^1.2.8",
     "mysql2": "^3.1.2",
