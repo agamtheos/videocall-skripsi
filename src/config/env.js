@@ -11,7 +11,9 @@ const env = {
         host: process.env.MYSQL_HOST || 'localhost',
         port: process.env.MYSQL_PORT || 3306,
         dialect: process.env.MYSQL_DIALECT || 'mysql'
-    }
+    },
+    jwtSecret: process.env.JWT_SECRET,
+    jwtExpires: process.env.JWT_EXPIRES || '1d'
 }
 
 module.exports = env;
