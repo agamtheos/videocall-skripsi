@@ -73,9 +73,14 @@ wss.on('connection', function (ws) {
             Connection.register(sessionId, message.name, ws);
             break;
         case 'call':
-            Connection.call(sessionId, message.to, message.from, message.sdpOffer);
+            console.log('call', message)
+            console.log('gege')
+            console.log(message.sdpOffer)
+            Connection.call(sessionId, message.from, message.to, message.sdpOffer);
             break;
         case 'incomingCallResponse':
+            console.log('incomingCallResponse', message)
+            console.log(message.sdpOffer)
             Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, ws);
             break;
         case 'stop':

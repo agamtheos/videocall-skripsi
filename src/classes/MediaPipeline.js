@@ -1,4 +1,5 @@
 const kurento = require('kurento-client');
+
 const UserRegistryClass = require('./UserRegistry');
 const PipelinesClass = require('./Pipelines');
 const CandidatesQueueClass = require('./CandidatesQueue');
@@ -43,9 +44,11 @@ module.exports = function MediaPipeline() {
 
                     callerWebRtcEndpoint.on('IceCandidateFound', function(event) {
                         const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-                        UserRegistry.getById(callerId).ws.send(JSON.stringify({
+                        const caller = UserRegistry.getById(callerId)
+                        caller.ws.send(JSON.stringify({
                             id : 'iceCandidate',
-                            candidate : candidate
+                            candidate : candidate,
+                            userId : caller.name
                         }));
                     });
 
@@ -65,9 +68,11 @@ module.exports = function MediaPipeline() {
 
                         calleeWebRtcEndpoint.on('IceCandidateFound', function(event) {
                             const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-                            UserRegistry.getById(calleeId).ws.send(JSON.stringify({
+                            const callee = UserRegistry.getById(calleeId)
+                            callee.ws.send(JSON.stringify({
                                 id : 'iceCandidate',
-                                candidate : candidate
+                                candidate : candidate,
+                                userId: callee.name
                             }));
                         });
 

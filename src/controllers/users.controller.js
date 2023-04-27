@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const utils = require('../helpers/utils');
+const encrypt = require('../helpers/encrypt');
 const { RESPONSE_MESSAGE } = require('../helpers/constants');
 
 const controller = {};
@@ -44,9 +45,10 @@ controller.getAllOnlineUser = async (req, res) => {
 }
 
 controller.createUser = async (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
+    const role = 'admin'
     try {
-        let missing = utils.missing_params(['username', 'password', 'role'], req.body)
+        let missing = utils.missing_params(['username', 'password'], req.body)
         if (missing.length > 0) return res.API.error(RESPONSE_MESSAGE.invalid_parameter(missing), 400)
 
         const user = await User.findOne({
@@ -74,5 +76,35 @@ controller.createUser = async (req, res) => {
         return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
     }
 }
+
+controller.changePassword = async (req, res) => {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    try {
+        const user = await User.findOne({
+            where: {
+                id: id
+            }
+        })
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+
+        const newPasword = await encrypt.encryptPassword(password)
+
+        await User.update({
+            password: newPasword,
+        }, {
+            where: {
+                id: id
+            }
+        })
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
 
 module.exports = controller;

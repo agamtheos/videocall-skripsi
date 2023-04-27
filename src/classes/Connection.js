@@ -27,25 +27,28 @@ module.exports = {
     
         UserRegistry.register(new UserSessionClass(id, name, ws));
         try {
-            ws.send(JSON.stringify({id: 'registerResponse', response: 'accepted'}));
+            ws.send(JSON.stringify({id: 'registerResponse', response: 'accepted', name: name}));
         } catch(exception) {
             onError(exception);
         }
     },
 
-    call(callerId, to, from, sdpOffer) {
+    call(callerId, from, to, sdpOffer) {
         CandidatesQueue.clearCandidatesQueue(callerId);
     
         let caller = UserRegistry.getById(callerId);
         let rejectCause = 'User ' + to + ' is not registered';
         if (UserRegistry.getByName(to)) {
             let callee = UserRegistry.getByName(to);
+            console.log('onfunction')
+            console.log(sdpOffer)
             caller.sdpOffer = sdpOffer
             callee.peer = from;
             caller.peer = to;
             let message = {
                 id: 'incomingCall',
                 from: from
+                // from: to
             };
             try{
                 return callee.sendMessage(message);
@@ -63,7 +66,8 @@ module.exports = {
 
     incomingCallResponse(calleeId, from, callResponse, calleeSdp, ws) {
         function onError(callerReason, calleeReason) {
-            if (pipeline) MediaPipeline.release();
+            // if (pipeline) MediaPipeline.release();
+            // MediaPipeline.release();
             if (caller) {
                 let callerMessage = {
                     id: 'callResponse',
@@ -114,7 +118,8 @@ module.exports = {
                         message = {
                             id: 'callResponse',
                             response : 'accepted',
-                            sdpAnswer: callerSdpAnswer
+                            sdpAnswer: callerSdpAnswer,
+                            from: callee.name
                         };
                         caller.sendMessage(message);
                     });
@@ -147,6 +152,8 @@ module.exports = {
             delete pipelines[stoppedUser.id];
             let message = {
                 id: 'stopCommunication',
+                stoppedUser: stopperUser.name,
+                stopperUser: stoppedUser.name,
                 message: 'remote user hanged out'
             }
             stoppedUser.sendMessage(message)

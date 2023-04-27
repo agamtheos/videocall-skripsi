@@ -7,7 +7,8 @@ const { RESPONSE_MESSAGE } = require('../helpers/constants');
 const controller = {};
 
 controller.registerUser = async (req, res) => {
-    const { username, password, role } = req.body;
+    const { username, password } = req.body;
+    const role = 'admin'
     try {
         const isExist = await User.findOne({
             where: {
@@ -50,6 +51,14 @@ controller.loginUser = async (req, res) => {
 
         const token = await encrypt.generateToken(user.username, user.role)
 
+        await User.update({
+            is_online: true
+        }, {
+            where: {
+                username: username
+            }
+        })
+
         const data = {
             token: token,
             role: user.role
@@ -61,5 +70,52 @@ controller.loginUser = async (req, res) => {
         return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
     }
 }
+
+controller.verifyJwt = async (req, res, next) => {
+    let token = req.headers['authorization'] || req.header('Authorization');
+    if (!token) return res.error(RESPONSE_MESSAGE.unauthorized, 401);
+
+    try {
+        const data = {
+            token: token,
+            role: req.auth.token
+        }
+
+        return res.API.success(data, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
+
+controller.forgotPassword = async (req, res) => {
+    const { username, newPassword } = req.body;
+    try {
+        const user = await User.findOne({
+            where: {
+                username: username
+            }
+        })
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+
+        const hashPassword = await encrypt.encryptPassword(newPassword)
+
+        await User.update({
+            password: hashPassword
+        },{
+            where: {
+                username: username
+            }
+        });
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
+
+
 
 module.exports = controller;
