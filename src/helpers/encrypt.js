@@ -24,9 +24,9 @@ module.exports = {
             return error;
         }
     },
-    generateToken: async (username, role) => {
+    generateToken: async (id, username, role) => {
         try {
-            const token = JWT.sign({ username: username, role: role }, env.jwtSecret, { expiresIn: env.jwtExpires });
+            const token = JWT.sign({ uid: id, username: username, role: role }, env.jwtSecret, { expiresIn: env.jwtExpires });
             return token;
         } catch (error) {
             console.log(error)

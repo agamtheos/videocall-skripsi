@@ -15,4 +15,5 @@ exports.USER_ROLE = {
     },
     already_exist: 'Already exist',
     invalid_token: 'Invalid token',
+    invalid_password: 'Password is incorrect',
   }

@@ -42,7 +42,7 @@ const server = https.createServer(options, app).listen(env.port, function () {
 const wss = new ws.Server({
     server: server,
     path: '/one2one'
-})
+});
 
 function nextUniqueId() {
     idCounter++;

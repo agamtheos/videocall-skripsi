@@ -1,5 +1,5 @@
 var ws = new WebSocket('wss://' + location.host + '/one2one');
-console.log(location.host)
+console.log('connect to wss://' + location.host + '/one2one')
 var videoInput;
 var videoOutput;
 var webRtcPeer;
@@ -164,7 +164,15 @@ function incomingCall(message) {
 		var options = {
 			localVideo : videoInput,
 			remoteVideo : videoOutput,
-			onicecandidate : onIceCandidate
+			onicecandidate : onIceCandidate,
+			iceServers: [
+				{
+					urls: [
+						'stun:stun.l.google.com:19302',
+						'stun:stun1.l.google.com:19302',
+					]
+				}
+			]
 		}
 
 		webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options,
@@ -234,7 +242,15 @@ function call() {
 	var options = {
 		localVideo : videoInput,
 		remoteVideo : videoOutput,
-		onicecandidate : onIceCandidate
+		onicecandidate : onIceCandidate,
+		iceServers: [
+			{
+				urls: [
+					'stun:stun.l.google.com:19302',
+					'stun:stun1.l.google.com:19302',
+				]
+			}
+		]
 	}
 
 	webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function(

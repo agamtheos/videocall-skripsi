@@ -58,3 +58,78 @@ controller.deleteUser = async (req, res) => {
         return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
     }
 }
+
+controller.getAllAdminOnline = async (req, res) => {
+    const options = {
+        where: {
+            is_online: true,
+            role: 'admin'
+        },
+        attributes: ['id', ['username', 'name'], ['short_name', 'shortName'], 'role']
+    }
+
+    const users = await User.findAll({
+        ...options,
+    })
+
+    return res.API.success(users, 200)
+}
+
+controller.changePassword = async (req, res) => {
+    const { id } = req.params;
+    const { password } = req.body;
+    try {
+        const user = await User.findOne({
+            where: {
+                id: id
+            }
+        })
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+
+        const newPassword = await encrypt.encryptPassword(password)
+
+        await User.update({
+            password: newPassword
+        }, {
+            where: {
+                id: id
+            }
+        })
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+}
+
+controller.changeUsername = async (req, res) => {
+    const { id } = req.params;
+    const { username } = req.body;
+
+    try {
+        const user = await User.findOne({
+            where: {
+                id: id
+            }
+        })
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+
+        await User.update({
+            username: username
+        }, {
+            where: {
+                id: id
+            }
+        })
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+}
+
+module.exports = controller;

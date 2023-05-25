@@ -9,6 +9,8 @@ const controller = {};
 controller.registerUser = async (req, res) => {
     const { username, password } = req.body;
     const role = 'admin'
+    // create shorName from first letter of each word in username
+    const shortName = username.split(' ').map(word => word[0]).join('').toUpperCase()
     try {
         const isExist = await User.findOne({
             where: {
@@ -22,6 +24,7 @@ controller.registerUser = async (req, res) => {
 
         User.create({
             username: username,
+            short_name: shortName,
             password: hashPassword,
             role: role,
             created_at: new Date(),
@@ -49,7 +52,7 @@ controller.loginUser = async (req, res) => {
 
         if (!isMatch) return res.API.error(RESPONSE_MESSAGE.invalid_password, 400)
 
-        const token = await encrypt.generateToken(user.username, user.role)
+        const token = await encrypt.generateToken(user.id, user.username, user.role)
 
         await User.update({
             is_online: true
@@ -70,6 +73,24 @@ controller.loginUser = async (req, res) => {
         return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
     }
 }
+
+controller.logout = async (req, res) => {
+    const { username } = req.params;
+    try {
+        await User.update({
+            is_online: false
+        }, {
+            where: {
+                username: username
+            }
+        })
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
 
 controller.verifyJwt = async (req, res, next) => {
     let token = req.headers['authorization'] || req.header('Authorization');
@@ -116,6 +137,19 @@ controller.forgotPassword = async (req, res) => {
     }
 };
 
-
+controller.getProfile = async (req, res) => {
+    try {
+        const user = await User.findOne({
+            where: {
+                id: req.auth.uid
+            },
+            attributes: ['id', 'username', 'role', 'is_online']
+        });
+    
+        return res.API.success(user)
+    } catch (error) {
+        return res.API.error(error.message)
+    }
+};
 
 module.exports = controller;

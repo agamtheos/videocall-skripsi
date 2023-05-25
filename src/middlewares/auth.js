@@ -5,7 +5,7 @@ const env = require('../config/env');
 
 module.exports = async (req, res, next) => {
     let token = req.headers['authorization'] || req.header('Authorization');
-    if (!token) return res.error(RESPONSE_MESSAGE.unauthorized, 401);
+    if (!token) return res.API.error(RESPONSE_MESSAGE.unauthorized, 401);
 
     try {
         token = token.split(" ")[1];
@@ -15,6 +15,6 @@ module.exports = async (req, res, next) => {
         next();
     } catch (error) {
         console.log(error)
-        return res.error(RESPONSE_MESSAGE.invalid_token, 498);
+        return res.API.error(RESPONSE_MESSAGE.invalid_token, 498);
     }
 }

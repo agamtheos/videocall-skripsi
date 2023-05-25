@@ -6,15 +6,23 @@ const { RESPONSE_MESSAGE } = require('../helpers/constants');
 
 const controller = {};
 
-controller.getAllUser = async (req, res) => {
+controller.getAllClientOnline = async (req, res) => {
+    const options = {
+        where: {
+            is_online: true,
+            role: 'client'
+        },
+        attributes: ['id', ['username', 'name'], ['short_name', 'shortName'], 'role']
+    }
+
     const users = await User.findAll({
-        attributes: ['id', 'username', 'role']
+        ...options,
     })
 
     return res.API.success(users, 200)
 }
 
-controller.getOneUser = async (req, res) => {
+controller.getOneClient = async (req, res) => {
     const { id } = req.params;
     try {
         const user = await User.findOne({
@@ -31,17 +39,6 @@ controller.getOneUser = async (req, res) => {
         console.log(error)
         return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
     }
-}
-
-controller.getAllOnlineUser = async (req, res) => {
-    const users = await User.findAll({
-        where: {
-            is_online: true
-        },
-        attributes: ['id', 'username', 'role']
-    })
-
-    return res.API.success(users, 200)
 }
 
 controller.createUser = async (req, res) => {
