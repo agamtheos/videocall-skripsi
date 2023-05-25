@@ -152,4 +152,12 @@ controller.getProfile = async (req, res) => {
     }
 };
 
+controller.checkServer = async (req, res) => {
+    try {
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        return res.API.error(error.message)
+    }
+};
+
 module.exports = controller;
