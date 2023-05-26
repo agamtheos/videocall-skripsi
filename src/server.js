@@ -21,8 +21,8 @@ const UserRegistry = new UserRegistryClass();
 let idCounter = 0;
 
 const options = {
-    key: fs.readFileSync('keys/server.key'),
-    cert: fs.readFileSync('keys/server.crt')
+    // key: fs.readFileSync('keys/server.key'),
+    // cert: fs.readFileSync('keys/server.crt')
 }
 
 const app = express();
