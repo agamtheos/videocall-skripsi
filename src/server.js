@@ -20,10 +20,10 @@ const UserRegistry = new UserRegistryClass();
 
 let idCounter = 0;
 
-const options = {
-    // key: fs.readFileSync('keys/server.key'),
-    // cert: fs.readFileSync('keys/server.crt')
-}
+// const options = {
+//     key: fs.readFileSync('keys/server.key'),
+//     cert: fs.readFileSync('keys/server.crt')
+// }
 
 const app = express();
 
@@ -35,7 +35,10 @@ app.use(urlencoded({ limit: '50mb', extended: true }));
 app.use(response)
 app.use('/api', Router)
 
-const server = https.createServer(options, app).listen(env.port, function () {
+// const server = https.createServer(app).listen(env.port, function () {
+//     console.log('Server is running on port', env.port);
+// });
+const server = app.listen(env.port, function () {
     console.log('Server is running on port', env.port);
 });
 
