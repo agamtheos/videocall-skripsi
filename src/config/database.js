@@ -20,4 +20,11 @@ db.sequelize = sequelize;
 sequelize
     .authenticate()
     .then(() => console.log('Connected to mysql server'))
-    .catch((err) => console.error(`${env.mysql}`, err.message))
+    .catch((err) => {
+        console.error(`${env.mysql}`, err.message)
+        // retry connection
+        setTimeout(() => {
+            console.log('Retry connecting to mysql server in 5 seconds...')
+            sequelize.authenticate()
+        }, 5000)
+    });

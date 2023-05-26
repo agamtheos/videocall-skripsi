@@ -7,8 +7,8 @@ const { RESPONSE_MESSAGE } = require('../helpers/constants');
 const controller = {};
 
 controller.registerUser = async (req, res) => {
-    const { username, password } = req.body;
-    const role = 'admin'
+    const { username, password, role } = req.body;
+    // const role = 'admin'
     // create shorName from first letter of each word in username
     const shortName = username.split(' ').map(word => word[0]).join('').toUpperCase()
     try {
@@ -110,7 +110,25 @@ controller.verifyJwt = async (req, res, next) => {
 };
 
 controller.forgotPassword = async (req, res) => {
-    const { username, newPassword } = req.body;
+    const { username } = req.body;
+    try {
+        const user = await User.findOne({
+            where: {
+                username: username
+            }
+        });
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
+
+controller.resetPassword = async (req, res) => {
+    const { username, password } = req.body;
     try {
         const user = await User.findOne({
             where: {
@@ -120,7 +138,7 @@ controller.forgotPassword = async (req, res) => {
 
         if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
 
-        const hashPassword = await encrypt.encryptPassword(newPassword)
+        const hashPassword = await encrypt.encryptPassword(password)
 
         await User.update({
             password: hashPassword
@@ -130,6 +148,38 @@ controller.forgotPassword = async (req, res) => {
             }
         });
 
+        return res.API.success(RESPONSE_MESSAGE.success, 200)
+    } catch (error) {
+        console.log(error)
+        return res.API.error(RESPONSE_MESSAGE.internal_server_error, 500)
+    }
+};
+
+controller.changePassword = async (req, res) => {
+    const { password, newPassword } = req.body;
+    try {
+        const user = await User.findOne({
+            where: {
+                id: req.auth.uid
+            }
+        });
+
+        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
+        console.log(password, user.password)
+        const isMatch = await encrypt.comparePassword(password, user.password)
+
+        if (!isMatch) return res.API.error(RESPONSE_MESSAGE.invalid_password, 400)
+
+        const hashPassword = await encrypt.encryptPassword(newPassword)
+
+        await User.update({
+            password: hashPassword
+        }, {
+            where: {
+                id: req.auth.uid
+            }
+        });
+        
         return res.API.success(RESPONSE_MESSAGE.success, 200)
     } catch (error) {
         console.log(error)
