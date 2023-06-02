@@ -1,4 +1,4 @@
-const kurento = require('kurento-client');
+// const kurento = require('kurento-client');
 
 const UserSessionClass = require('./UserSession');
 const UserRegistryClass = require('./UserRegistry');
@@ -12,7 +12,7 @@ const CandidatesQueue = new CandidatesQueueClass();
 const MediaPipeline = new MediaPipelineClass();
 
 module.exports = {
-    register(id, name, ws, callback) {
+    register(id, name, ws, state, callback) {
         function onError(error) {
             ws.send(JSON.stringify({id:'registerResponse', response : 'rejected ', message: error}));
         }
@@ -25,7 +25,7 @@ module.exports = {
             return onError("User " + name + " is already registered");
         }
     
-        UserRegistry.register(new UserSessionClass(id, name, ws));
+        UserRegistry.register(new UserSessionClass(id, name, ws, state));
         try {
             ws.send(JSON.stringify({id: 'registerResponse', response: 'accepted', name: name}));
         } catch(exception) {
@@ -33,23 +33,29 @@ module.exports = {
         }
     },
 
-    call(callerId, from, to, sdpOffer) {
+    call(callerId, from, to, sdpOffer, state) {
         CandidatesQueue.clearCandidatesQueue(callerId);
     
         let caller = UserRegistry.getById(callerId);
+
         let rejectCause = 'User ' + to + ' is not registered';
+
         if (UserRegistry.getByName(to)) {
             let callee = UserRegistry.getByName(to);
-            console.log('onfunction')
-            console.log(sdpOffer)
             caller.sdpOffer = sdpOffer
-            callee.peer = from;
             caller.peer = to;
+            caller.state = state;
+
+            callee.peer = from;
+            callee.state = state;
+
             let message = {
                 id: 'incomingCall',
-                from: from
+                from: from,
+                sdpOffer: sdpOffer
                 // from: to
             };
+
             try{
                 return callee.sendMessage(message);
             } catch(exception) {
@@ -65,66 +71,37 @@ module.exports = {
     },
 
     incomingCallResponse(calleeId, from, callResponse, calleeSdp, ws) {
-        function onError(callerReason, calleeReason) {
-            // if (pipeline) MediaPipeline.release();
-            // MediaPipeline.release();
-            if (caller) {
-                let callerMessage = {
-                    id: 'callResponse',
-                    response: 'rejected'
-                }
-                if (callerReason) callerMessage.message = callerReason;
-                caller.sendMessage(callerMessage);
-            }
-    
-            let calleeMessage = {
-                id: 'stopCommunication'
-            };
-            if (calleeReason) calleeMessage.message = calleeReason;
-            callee.sendMessage(calleeMessage);
-        }
-    
+        let caller = UserRegistry.getByName(from);
         let callee = UserRegistry.getById(calleeId);
+        
+        if (callResponse === 'reject') {
+            let message = {
+                id: 'callResponse',
+                response: 'rejected',
+                message: 'user declined'
+            };
+            return UserRegistry.getByName(from).sendMessage(message);
+        }
+
         if (!from || !UserRegistry.getByName(from)) {
             return onError(null, 'unknown from = ' + from);
         }
-        let caller = UserRegistry.getByName(from);
-        if (callResponse === 'accept') {
-            let pipeline = new MediaPipelineClass();
-            Pipelines.addPipeline(caller.id, pipeline);
-            Pipelines.addPipeline(callee.id, pipeline);
 
-            MediaPipeline.createPipeline(caller.id, callee.id, ws, function(error) {
-                if (error) {
-                    return onError(error, error);
+        if (callResponse === 'accept') {
+            message = {
+                id: 'startCommunication',
+                sdpAnswer: calleeSdp
+            }
+            caller.sendMessage(message);
+            // add delay 1 second
+            setTimeout(() => {
+                const msg = {
+                    id: 'onReceiveFinishRequest'
                 }
-    
-                MediaPipeline.generateSdpAnswer(caller.id, caller.sdpOffer, function(error, callerSdpAnswer) {
-                    if (error) {
-                        return onError(error, error);
-                    }
-    
-                    MediaPipeline.generateSdpAnswer(callee.id, calleeSdp, function(error, calleeSdpAnswer) {
-                        if (error) {
-                            return onError(error, error);
-                        }
-    
-                        let message = {
-                            id: 'startCommunication',
-                            sdpAnswer: calleeSdpAnswer
-                        };
-                        callee.sendMessage(message);
-    
-                        message = {
-                            id: 'callResponse',
-                            response : 'accepted',
-                            sdpAnswer: callerSdpAnswer,
-                            from: callee.name
-                        };
-                        caller.sendMessage(message);
-                    });
-                });
-            });
+                callee.sendMessage(msg);
+                caller.sendMessage(msg);
+            }, 1000);
+            
         } else {
             const decline = {
                 id: 'callResponse',
@@ -134,48 +111,39 @@ module.exports = {
             caller.sendMessage(decline);
         }
     },
-    stop(sessionId) {
-        let pipelines = Pipelines.getPipelines();
-        if (!pipelines[sessionId]) {
-            return;
+    stop(sessionId, from, to) {
+        let stoppedUser;
+        if (to) {
+            const stopperUser = UserRegistry.getById(sessionId);
+            stoppedUser = UserRegistry.getByName(stopperUser.peer) ? UserRegistry.getByName(stopperUser.peer) : UserRegistry.getByName(to);
         }
-    
-        let pipeline = pipelines[sessionId];
-        Pipelines.removePipeline(sessionId);
-        pipeline.release();
-        let stopperUser = UserRegistry.getById(sessionId);
-        let stoppedUser = UserRegistry.getByName(stopperUser.peer);
-        stopperUser.peer = null;
-    
+
         if (stoppedUser) {
-            stoppedUser.peer = null;
-            delete pipelines[stoppedUser.id];
             let message = {
                 id: 'stopCommunication',
-                stoppedUser: stopperUser.name,
-                stopperUser: stoppedUser.name,
                 message: 'remote user hanged out'
             }
-            stoppedUser.sendMessage(message)
+            stoppedUser.sendMessage(message);
         }
-    
-        CandidatesQueue.clearCandidatesQueue(sessionId);
     },
-    onIceCandidate(sessionId, _candidate) {
-        const candidate = kurento.getComplexType('IceCandidate')(_candidate);
+    onIceCandidate(sessionId, _candidate, to, from) {
+        const user = UserRegistry.getById(sessionId)
+
+        if (user.state === 'req_calling') {
+            CandidatesQueue.addEmptyCandidateQueue(user.name);
+            CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
+        }
+    },
+    onFinishRequest(sessionId) {
         const user = UserRegistry.getById(sessionId);
-    
-        const pipelines = Pipelines.getPipelines();
-        if (pipelines[user.id] && pipelines[user.id].webRtcEndpoint && pipelines[user.id].webRtcEndpoint[user.id]) {
-            const webRtcEndpoint = pipelines[user.id].webRtcEndpoint[user.id];
-            webRtcEndpoint.addIceCandidate(candidate);
+        const peer = UserRegistry.getByName(user.peer);
+
+        const peerCandidate = CandidatesQueue.getCandidateQueueById(user.peer);
+        console.log('peerCandidate', peerCandidate[0])
+        const message = {
+            id: 'iceCandidate',
+            candidate: peerCandidate[0]
         }
-        else {
-            let candidatesQueue = CandidatesQueue.getCandidateQueueById(user.id);
-            if (!candidatesQueue) {
-                CandidatesQueue.addEmptyCandidateQueue(sessionId)
-            }
-            CandidatesQueue.addCandidateQueueWithData(sessionId, candidate);
-        }
-    },
+        user.sendMessage(message);
+    }
 }

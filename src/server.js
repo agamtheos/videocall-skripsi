@@ -73,13 +73,13 @@ wss.on('connection', function (ws) {
 
         switch (message.id) {
         case 'register':
-            Connection.register(sessionId, message.name, ws);
+            Connection.register(sessionId, message.name, ws, message.state);
             break;
         case 'call':
             console.log('call', message)
             console.log('gege')
             console.log(message.sdpOffer)
-            Connection.call(sessionId, message.from, message.to, message.sdpOffer);
+            Connection.call(sessionId, message.from, message.to, message.sdpOffer, message.state);
             break;
         case 'incomingCallResponse':
             console.log('incomingCallResponse', message)
@@ -87,10 +87,14 @@ wss.on('connection', function (ws) {
             Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, ws);
             break;
         case 'stop':
-            Connection.stop(sessionId);
+            Connection.stop(sessionId, message.from, message.to);
             break;
         case 'onIceCandidate':
-            Connection.onIceCandidate(sessionId, message.candidate);
+            Connection.onIceCandidate(sessionId, message.candidate, message.to, message.from);
+            console.log('onIceCandidate', message)
+            break;
+        case 'onFinishRequest':
+            Connection.onFinishRequest(sessionId);
             break;
         default:
             ws.send(JSON.stringify({

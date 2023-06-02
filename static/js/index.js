@@ -165,14 +165,58 @@ function incomingCall(message) {
 			localVideo : videoInput,
 			remoteVideo : videoOutput,
 			onicecandidate : onIceCandidate,
+			configuration: {
+				iceServers: [
+					{
+						urls: "stun:a.relay.metered.ca:80",
+					},
+					{
+						urls: "turn:a.relay.metered.ca:80",
+						username: "417e29407130059049b7c92e",
+						credential: "4CZ5bkgLqE0QjdRU",
+					  },
+					  {
+						urls: "turn:a.relay.metered.ca:80?transport=tcp",
+						username: "417e29407130059049b7c92e",
+						credential: "4CZ5bkgLqE0QjdRU",
+					  },
+					  {
+						urls: "turn:a.relay.metered.ca:443",
+						username: "417e29407130059049b7c92e",
+						credential: "4CZ5bkgLqE0QjdRU",
+					  },
+					  {
+						urls: "turn:a.relay.metered.ca:443?transport=tcp",
+						username: "417e29407130059049b7c92e",
+						credential: "4CZ5bkgLqE0QjdRU",
+					  }
+				],
+			},
 			iceServers: [
-				{
-					urls: [
-						'stun:stun.l.google.com:19302',
-						'stun:stun1.l.google.com:19302',
-					]
-				}
-			]
+						{
+							urls: "stun:a.relay.metered.ca:80",
+						},
+						{
+							urls: "turn:a.relay.metered.ca:80",
+							username: "417e29407130059049b7c92e",
+							credential: "4CZ5bkgLqE0QjdRU",
+						  },
+						  {
+							urls: "turn:a.relay.metered.ca:80?transport=tcp",
+							username: "417e29407130059049b7c92e",
+							credential: "4CZ5bkgLqE0QjdRU",
+						  },
+						  {
+							urls: "turn:a.relay.metered.ca:443",
+							username: "417e29407130059049b7c92e",
+							credential: "4CZ5bkgLqE0QjdRU",
+						  },
+						  {
+							urls: "turn:a.relay.metered.ca:443?transport=tcp",
+							username: "417e29407130059049b7c92e",
+							credential: "4CZ5bkgLqE0QjdRU",
+						  },
+					],
 		}
 
 		webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options,
@@ -243,14 +287,58 @@ function call() {
 		localVideo : videoInput,
 		remoteVideo : videoOutput,
 		onicecandidate : onIceCandidate,
+		configuration: {
+            iceServers: [
+				{
+					urls: "stun:a.relay.metered.ca:80",
+				},
+				{
+					urls: "turn:a.relay.metered.ca:80",
+					username: "417e29407130059049b7c92e",
+					credential: "4CZ5bkgLqE0QjdRU",
+				  },
+				  {
+					urls: "turn:a.relay.metered.ca:80?transport=tcp",
+					username: "417e29407130059049b7c92e",
+					credential: "4CZ5bkgLqE0QjdRU",
+				  },
+				  {
+					urls: "turn:a.relay.metered.ca:443",
+					username: "417e29407130059049b7c92e",
+					credential: "4CZ5bkgLqE0QjdRU",
+				  },
+				  {
+					urls: "turn:a.relay.metered.ca:443?transport=tcp",
+					username: "417e29407130059049b7c92e",
+					credential: "4CZ5bkgLqE0QjdRU",
+				  }
+			],
+        },
 		iceServers: [
 			{
-				urls: [
-					'stun:stun.l.google.com:19302',
-					'stun:stun1.l.google.com:19302',
-				]
-			}
-		]
+				urls: "stun:a.relay.metered.ca:80",
+			},
+			{
+				urls: "turn:a.relay.metered.ca:80",
+				username: "417e29407130059049b7c92e",
+				credential: "4CZ5bkgLqE0QjdRU",
+			  },
+			  {
+				urls: "turn:a.relay.metered.ca:80?transport=tcp",
+				username: "417e29407130059049b7c92e",
+				credential: "4CZ5bkgLqE0QjdRU",
+			  },
+			  {
+				urls: "turn:a.relay.metered.ca:443",
+				username: "417e29407130059049b7c92e",
+				credential: "4CZ5bkgLqE0QjdRU",
+			  },
+			  {
+				urls: "turn:a.relay.metered.ca:443?transport=tcp",
+				username: "417e29407130059049b7c92e",
+				credential: "4CZ5bkgLqE0QjdRU",
+			  }
+		],
 	}
 
 	webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendrecv(options, function(

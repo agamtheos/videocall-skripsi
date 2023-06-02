@@ -1,4 +1,4 @@
-const kurento = require('kurento-client');
+// const kurento = require('kurento-client');
 
 const UserRegistryClass = require('./UserRegistry');
 const PipelinesClass = require('./Pipelines');
@@ -8,7 +8,7 @@ const KurentoClientClass = require('./KurentoClient');
 const Pipelines = new PipelinesClass();
 const CandidatesQueue = new CandidatesQueueClass();
 const UserRegistry = new UserRegistryClass();
-const KurentoClient = new KurentoClientClass();
+// const KurentoClient = new KurentoClientClass();
 
 const selfPipeline = null;
 const selfWebRtcEndpoint = {};
@@ -19,86 +19,86 @@ module.exports = function MediaPipeline() {
 
     this.createPipeline = (callerId, calleeId, ws, callback) => {
         let self = this
-        KurentoClient.getKurentoClient(function(error, kurentoClient) {
-            if (error) {
-                return callback(error);
-            }
+        // KurentoClient.getKurentoClient(function(error, kurentoClient) {
+        //     if (error) {
+        //         return callback(error);
+        //     }
 
-            kurentoClient.create('MediaPipeline', function(error, pipeline) {
-                if (error) {
-                    return callback(error);
-                }
+        //     kurentoClient.create('MediaPipeline', function(error, pipeline) {
+        //         if (error) {
+        //             return callback(error);
+        //         }
 
-                pipeline.create('WebRtcEndpoint', function(error, callerWebRtcEndpoint) {
-                    if (error) {
-                        pipeline.this.release();
-                        return callback(error);
-                    }
-                    const candidatesQueue = CandidatesQueue.getCandidateQueueById(callerId);
-                    if (candidatesQueue) {
-                        while(candidatesQueue.length) {
-                            const candidate = CandidatesQueue.shiftCandidateQueueById(callerId);
-                            callerWebRtcEndpoint.addIceCandidate(candidate);
-                        }
-                    }
+        //         pipeline.create('WebRtcEndpoint', function(error, callerWebRtcEndpoint) {
+        //             if (error) {
+        //                 pipeline.this.release();
+        //                 return callback(error);
+        //             }
+        //             const candidatesQueue = CandidatesQueue.getCandidateQueueById(callerId);
+        //             if (candidatesQueue) {
+        //                 while(candidatesQueue.length) {
+        //                     const candidate = CandidatesQueue.shiftCandidateQueueById(callerId);
+        //                     callerWebRtcEndpoint.addIceCandidate(candidate);
+        //                 }
+        //             }
 
-                    callerWebRtcEndpoint.on('IceCandidateFound', function(event) {
-                        const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-                        const caller = UserRegistry.getById(callerId)
-                        caller.ws.send(JSON.stringify({
-                            id : 'iceCandidate',
-                            candidate : candidate,
-                            userId : caller.name
-                        }));
-                    });
+        //             callerWebRtcEndpoint.on('IceCandidateFound', function(event) {
+        //                 const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
+        //                 const caller = UserRegistry.getById(callerId)
+        //                 caller.ws.send(JSON.stringify({
+        //                     id : 'iceCandidate',
+        //                     candidate : candidate,
+        //                     userId : caller.name
+        //                 }));
+        //             });
 
-                    pipeline.create('WebRtcEndpoint', function(error, calleeWebRtcEndpoint) {
-                        if (error) {
-                            pipeline.this.release();
-                            return callback(error);
-                        }
+        //             pipeline.create('WebRtcEndpoint', function(error, calleeWebRtcEndpoint) {
+        //                 if (error) {
+        //                     pipeline.this.release();
+        //                     return callback(error);
+        //                 }
 
-                        const candidatesQueue = CandidatesQueue.getCandidateQueueById(calleeId);
-                        if (candidatesQueue) {
-                            while(candidatesQueue.length) {
-                                const candidate = CandidatesQueue.shiftCandidateQueueById(calleeId);
-                                calleeWebRtcEndpoint.addIceCandidate(candidate);
-                            }
-                        }
+        //                 const candidatesQueue = CandidatesQueue.getCandidateQueueById(calleeId);
+        //                 if (candidatesQueue) {
+        //                     while(candidatesQueue.length) {
+        //                         const candidate = CandidatesQueue.shiftCandidateQueueById(calleeId);
+        //                         calleeWebRtcEndpoint.addIceCandidate(candidate);
+        //                     }
+        //                 }
 
-                        calleeWebRtcEndpoint.on('IceCandidateFound', function(event) {
-                            const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
-                            const callee = UserRegistry.getById(calleeId)
-                            callee.ws.send(JSON.stringify({
-                                id : 'iceCandidate',
-                                candidate : candidate,
-                                userId: callee.name
-                            }));
-                        });
+        //                 calleeWebRtcEndpoint.on('IceCandidateFound', function(event) {
+        //                     const candidate = kurento.getComplexType('IceCandidate')(event.candidate);
+        //                     const callee = UserRegistry.getById(calleeId)
+        //                     callee.ws.send(JSON.stringify({
+        //                         id : 'iceCandidate',
+        //                         candidate : candidate,
+        //                         userId: callee.name
+        //                     }));
+        //                 });
 
-                        callerWebRtcEndpoint.connect(calleeWebRtcEndpoint, function(error) {
-                            if (error) {
-                                pipeline.this.release();
-                                return callback(error);
-                            }
+        //                 callerWebRtcEndpoint.connect(calleeWebRtcEndpoint, function(error) {
+        //                     if (error) {
+        //                         pipeline.this.release();
+        //                         return callback(error);
+        //                     }
 
-                            calleeWebRtcEndpoint.connect(callerWebRtcEndpoint, function(error) {
-                                if (error) {
-                                    pipeline.this.release();
-                                    return callback(error);
-                                }
+        //                     calleeWebRtcEndpoint.connect(callerWebRtcEndpoint, function(error) {
+        //                         if (error) {
+        //                             pipeline.this.release();
+        //                             return callback(error);
+        //                         }
 
-                                self.pipeline = pipeline;
-                                self.webRtcEndpoint[callerId] = callerWebRtcEndpoint;
-                                self.webRtcEndpoint[calleeId] = calleeWebRtcEndpoint;
+        //                         self.pipeline = pipeline;
+        //                         self.webRtcEndpoint[callerId] = callerWebRtcEndpoint;
+        //                         self.webRtcEndpoint[calleeId] = calleeWebRtcEndpoint;
 
-                                callback(null);
-                            });
-                        });
-                    });
-                });
-            });
-        });
+        //                         callback(null);
+        //                     });
+        //                 });
+        //             });
+        //         });
+        //     });
+        // });
     }
 
     this.generateSdpAnswer = (id, sdpOffer, callback) => {
