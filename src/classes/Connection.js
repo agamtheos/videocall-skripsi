@@ -61,6 +61,18 @@ module.exports = {
             } catch(exception) {
                 rejectCause = "Error " + exception;
             }
+
+            // let msg = {
+            //     id: 'callResponse',
+            //     response: 'accepted',
+            //     from: from,
+            //     to: to,
+            // }
+            // try {
+            //     caller.sendMessage(msg);
+            // } catch(exception) {
+            //     rejectCause = "Error " + exception;
+            // }
         }
         let message  = {
             id: 'callResponse',
@@ -70,9 +82,17 @@ module.exports = {
         caller.sendMessage(message);
     },
 
-    incomingCallResponse(calleeId, from, callResponse, calleeSdp, ws) {
+    incomingCallResponse(calleeId, from, callResponse, calleeSdp, state, ws) {
         let caller = UserRegistry.getByName(from);
         let callee = UserRegistry.getById(calleeId);
+
+        caller.state = state;
+        callee.state = state;
+        // const msg = {
+        //     id: 'startCandidates',
+        // }
+
+        // caller.sendMessage(msg);
         
         if (callResponse === 'reject') {
             let message = {
@@ -80,7 +100,7 @@ module.exports = {
                 response: 'rejected',
                 message: 'user declined'
             };
-            return UserRegistry.getByName(from).sendMessage(message);
+            return caller.sendMessage(message);
         }
 
         if (!from || !UserRegistry.getByName(from)) {
@@ -94,13 +114,13 @@ module.exports = {
             }
             caller.sendMessage(message);
             // add delay 1 second
-            setTimeout(() => {
-                const msg = {
-                    id: 'onReceiveFinishRequest'
-                }
-                callee.sendMessage(msg);
-                caller.sendMessage(msg);
-            }, 1000);
+            // setTimeout(() => {
+            //     const msg = {
+            //         id: 'startCandidates'
+            //     }
+            //     callee.sendMessage(msg);
+            //     caller.sendMessage(msg);
+            // }, 1000);
             
         } else {
             const decline = {
@@ -128,11 +148,57 @@ module.exports = {
     },
     onIceCandidate(sessionId, _candidate, to, from) {
         const user = UserRegistry.getById(sessionId)
+        const peer = UserRegistry.getByName(user.peer);
 
-        if (user.state === 'req_calling') {
+        // always loop to check peer.state === 'accept_calling' then send candidate
+        if (peer.state === 'req_calling') {
+            console.log('adding candidate queue')
             CandidatesQueue.addEmptyCandidateQueue(user.name);
             CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
+            // break;
         }
+
+        // if user state === 'acc_calling' then send candidate
+        if (user.state === 'acc_calling') {
+            const candidates = CandidatesQueue.getCandidateQueueById(user.name);
+            console.log('candidates', candidates)
+            // send candidate that come late
+            if (candidates?.length > 0) {
+                for (let i = 0; i < candidates.length; i++) {
+                    const message = {
+                        id: 'iceCandidate',
+                        candidate: candidates[i]
+                    }
+                    peer.sendMessage(message);
+                }
+            }
+            
+            // send candidate that come right away
+            const msessage = {
+                id: 'iceCandidate',
+                candidate: _candidate
+            }
+            peer.sendMessage(msessage);
+        }
+        // const message = {
+        //     id: 'iceCandidate',
+        //     candidate: _candidate
+        // }
+        // peer.sendMessage(message);
+
+        // if (user.state === 'req_calling') {
+        //     CandidatesQueue.addEmptyCandidateQueue(user.name);
+        //     CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
+        // }
+    },
+    peerConnected(sessionId, from, to) {
+        const user = UserRegistry.getById(sessionId);
+
+        const message = {
+            id: 'peerConnected',
+            message: 'peer connected'
+        }
+        user.sendMessage(message);
     },
     onFinishRequest(sessionId) {
         const user = UserRegistry.getById(sessionId);

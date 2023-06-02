@@ -20,11 +20,6 @@ const UserRegistry = new UserRegistryClass();
 
 let idCounter = 0;
 
-// const options = {
-//     key: fs.readFileSync('keys/server.key'),
-//     cert: fs.readFileSync('keys/server.crt')
-// }
-
 const app = express();
 
 app.use(cors({credentials: true, origin: true}));
@@ -35,12 +30,23 @@ app.use(urlencoded({ limit: '50mb', extended: true }));
 app.use(response)
 app.use('/api', Router)
 
-// const server = https.createServer(options, app).listen(env.port, function () {
-//     console.log('Server is running on port', env.port);
-// });
-const server = app.listen(env.port, function () {
-    console.log('Server is running on port', env.port);
-});
+let server;
+if (process.env.NODE_ENV === 'development') {
+    const options = {
+        key: fs.readFileSync('keys/server.key'),
+        cert: fs.readFileSync('keys/server.crt')
+    }
+
+    server = https.createServer(options, app).listen(env.port, function () {
+        console.log('Server is running on port', env.port);
+    });
+}
+
+if (process.env.NODE_ENV === 'production') {
+    server = app.listen(env.port, function () {
+        console.log('Server is running on port', env.port);
+    });
+}
 
 const wss = new ws.Server({
     server: server,
@@ -76,15 +82,10 @@ wss.on('connection', function (ws) {
             Connection.register(sessionId, message.name, ws, message.state);
             break;
         case 'call':
-            console.log('call', message)
-            console.log('gege')
-            console.log(message.sdpOffer)
             Connection.call(sessionId, message.from, message.to, message.sdpOffer, message.state);
             break;
         case 'incomingCallResponse':
-            console.log('incomingCallResponse', message)
-            console.log(message.sdpOffer)
-            Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, ws);
+            Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, message.state, ws);
             break;
         case 'stop':
             Connection.stop(sessionId, message.from, message.to);
@@ -93,8 +94,8 @@ wss.on('connection', function (ws) {
             Connection.onIceCandidate(sessionId, message.candidate, message.to, message.from);
             console.log('onIceCandidate', message)
             break;
-        case 'onFinishRequest':
-            Connection.onFinishRequest(sessionId);
+        case 'peerConnected':
+            Connection.peerConnected(sessionId, message.from, message.to);
             break;
         default:
             ws.send(JSON.stringify({
