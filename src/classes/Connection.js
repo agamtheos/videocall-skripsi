@@ -161,7 +161,7 @@ module.exports = {
         const peer = UserRegistry.getByName(user.peer);
 
         // always loop to check peer.state === 'accept_calling' then send candidate
-        if (peer?.state === 'req_calling' || peer?.state !== undefined) {
+        if (peer.state === 'req_calling' || peer.state !== undefined) {
             console.log('adding candidate queue')
             CandidatesQueue.addEmptyCandidateQueue(user.name);
             CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
@@ -169,7 +169,7 @@ module.exports = {
         }
 
         // if user state === 'acc_calling' then send candidate
-        if (user?.state === 'acc_calling' || peer?.state !== undefined) {
+        if (user.state === 'acc_calling' || peer.state !== undefined) {
             const candidates = CandidatesQueue.getCandidateQueueById(user.name);
             console.log('candidates', candidates)
             // send candidate that come late
