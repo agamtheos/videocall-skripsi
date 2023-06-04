@@ -39,7 +39,7 @@ module.exports = {
         let caller = UserRegistry.getById(callerId);
         let callee = UserRegistry.getByName(to)
         console.log('MASUK SINI')
-        if (callee.state !== 'registered') {
+        if (callee?.state !== 'registered') {
             console.log("UDAH MASUK")
             const msg = {
                 id: 'callResponse',
