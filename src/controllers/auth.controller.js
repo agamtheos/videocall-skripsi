@@ -1,5 +1,4 @@
 const User = require('../models/user.model');
-
 const encrypt = require('../helpers/encrypt');
 const utils = require('../helpers/utils');
 const { RESPONSE_MESSAGE } = require('../helpers/constants');
@@ -7,7 +6,9 @@ const { RESPONSE_MESSAGE } = require('../helpers/constants');
 const controller = {};
 
 controller.registerUser = async (req, res) => {
-    const { username, password, role } = req.body;
+    const { password, role } = req.body;
+    let { username } = req.body;
+    username = username.toLowerCase().replace(' ', '');
     // const role = 'admin'
     // create shorName from first letter of each word in username
     const shortName = username.split(' ').map(word => word[0]).join('').toUpperCase()
