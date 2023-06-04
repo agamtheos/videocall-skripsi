@@ -161,17 +161,17 @@ module.exports = {
         const peer = UserRegistry.getByName(user.peer);
 
         // always loop to check peer.state === 'accept_calling' then send candidate
-        if (peer.state === 'req_calling' || peer.state !== undefined) {
-            console.log('adding candidate queue')
+        if (peer.state === 'req_calling') {
+            console.log('Adding Candidates in Request State')
             CandidatesQueue.addEmptyCandidateQueue(user.name);
             CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
             // break;
         }
 
         // if user state === 'acc_calling' then send candidate
-        if (user.state === 'acc_calling' || peer.state !== undefined) {
+        if (user.state === 'acc_calling') {
+            console.log('Sending Candidates in Accept State')
             const candidates = CandidatesQueue.getCandidateQueueById(user.name);
-            console.log('candidates', candidates)
             // send candidate that come late
             if (candidates?.length > 0) {
                 for (let i = 0; i < candidates.length; i++) {
