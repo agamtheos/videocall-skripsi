@@ -37,11 +37,21 @@ module.exports = {
         CandidatesQueue.clearCandidatesQueue(callerId);
     
         let caller = UserRegistry.getById(callerId);
+        let callee = UserRegistry.getByName(to)
+        console.log('MASUK SINI')
+        if (callee.state !== 'registered') {
+            console.log("UDAH MASUK")
+            const msg = {
+                id: 'callResponse',
+                response: 'reject_incall',
+                message: 'User masih dalam panggilan lain atau sedang tidak dapat dihubungi, silahkan coba beberapa saat lagi'
+            }
+            return caller.sendMessage(msg);
+        }
 
         let rejectCause = 'User ' + to + ' is not registered';
 
-        if (UserRegistry.getByName(to)) {
-            let callee = UserRegistry.getByName(to);
+        if (callee) {
             caller.sdpOffer = sdpOffer
             caller.peer = to;
             caller.state = state;
