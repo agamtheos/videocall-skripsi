@@ -196,12 +196,14 @@ module.exports = {
                 }
             }
             
-            // send candidate that come right away
+            if (!candidates || candidates.length === 0) {
+                // send candidate that come right away
             const msessage = {
                 id: 'iceCandidate',
                 candidate: _candidate
             }
             peer.sendMessage(msessage);
+            }
         }
         // const message = {
         //     id: 'iceCandidate',
