@@ -5,6 +5,7 @@ const UserRegistryClass = require('./UserRegistry');
 const PipelinesClass = require('./Pipelines');
 const CandidatesQueueClass = require('./CandidatesQueue');
 const MediaPipelineClass = require('./MediaPipeline');
+const User = require('../models/user.model');
 
 const UserRegistry = new UserRegistryClass();
 const Pipelines = new PipelinesClass();
@@ -34,13 +35,15 @@ module.exports = {
     },
 
     call(callerId, from, to, sdpOffer, state) {
+        console.log('Call Function Called')
         CandidatesQueue.clearCandidatesQueue(callerId);
     
         let caller = UserRegistry.getById(callerId);
-        let callee = UserRegistry.getByName(to)
-        console.log('MASUK SINI')
+        let callee = UserRegistry.getByName(to);
+
+        console.log('Checking Callee State')
         if (callee?.state !== 'registered') {
-            console.log("UDAH MASUK")
+            console.log('Callee State is not registered')
             const msg = {
                 id: 'callResponse',
                 response: 'reject_incall',
@@ -49,9 +52,15 @@ module.exports = {
             return caller.sendMessage(msg);
         }
 
+        console.log('Callee State is registered')
+
         let rejectCause = 'User ' + to + ' is not registered';
 
+        console.log('Calee : ', callee)
+
         if (callee) {
+            console.log('Processing Call')
+
             caller.sdpOffer = sdpOffer
             caller.peer = to;
             caller.state = state;
@@ -67,6 +76,7 @@ module.exports = {
             };
 
             try{
+                console.log('Sending Message to Callee')
                 return callee.sendMessage(message);
             } catch(exception) {
                 rejectCause = "Error " + exception;
@@ -155,6 +165,9 @@ module.exports = {
             }
             stoppedUser.sendMessage(message);
         }
+
+        UserRegistry.unregister(sessionId);
+        UserRegistry.unregister(stoppedUser.id);
     },
     onIceCandidate(sessionId, _candidate, to, from) {
         const user = UserRegistry.getById(sessionId)
