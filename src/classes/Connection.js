@@ -34,15 +34,16 @@ module.exports = {
         }
     },
 
-    call(callerId, from, to, sdpOffer, state) {
+    call(callerId, from, to, state) {
         console.log('Call Function Called')
+
         CandidatesQueue.clearCandidatesQueue(callerId);
     
         let caller = UserRegistry.getById(callerId);
         let callee = UserRegistry.getByName(to);
 
         console.log('Checking Callee State')
-        if (callee?.state !== 'registered') {
+        if (callee?.state === 'IN_CALL') {
             console.log('Callee State is not registered')
             const msg = {
                 id: 'callResponse',
@@ -56,12 +57,9 @@ module.exports = {
 
         let rejectCause = 'User ' + to + ' is not registered';
 
-        console.log('Calee : ', callee)
-
         if (callee) {
             console.log('Processing Call')
 
-            caller.sdpOffer = sdpOffer
             caller.peer = to;
             caller.state = state;
 
@@ -71,8 +69,6 @@ module.exports = {
             let message = {
                 id: 'incomingCall',
                 from: from,
-                sdpOffer: sdpOffer
-                // from: to
             };
 
             try{
@@ -96,13 +92,13 @@ module.exports = {
         }
         let message  = {
             id: 'callResponse',
-            response: 'rejected: ',
+            response: 'rejected',
             message: rejectCause
         };
         caller.sendMessage(message);
     },
 
-    incomingCallResponse(calleeId, from, callResponse, calleeSdp, state, ws) {
+    incomingCallResponse(calleeId, from, callResponse, state, ws) {
         let caller = UserRegistry.getByName(from);
         let callee = UserRegistry.getById(calleeId);
 
@@ -123,6 +119,15 @@ module.exports = {
             return caller.sendMessage(message);
         }
 
+        if (callResponse === 'reject_incall') {
+            let message = {
+                id: 'callResponse',
+                response: 'reject_incall',
+                message: 'user is in call'
+            };
+            return caller.sendMessage(message);
+        }
+
         if (!from || !UserRegistry.getByName(from)) {
             return onError(null, 'unknown from = ' + from);
         }
@@ -130,7 +135,6 @@ module.exports = {
         if (callResponse === 'accept') {
             message = {
                 id: 'startCommunication',
-                sdpAnswer: calleeSdp
             }
             caller.sendMessage(message);
             // add delay 1 second
@@ -166,8 +170,8 @@ module.exports = {
             stoppedUser.sendMessage(message);
         }
 
+        if (stoppedUser) UserRegistry.unregister(stoppedUser.id);
         UserRegistry.unregister(sessionId);
-        UserRegistry.unregister(stoppedUser.id);
     },
     onIceCandidate(sessionId, _candidate, to, from) {
         const user = UserRegistry.getById(sessionId)

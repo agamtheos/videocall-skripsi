@@ -80,23 +80,32 @@ wss.on('connection', function (ws) {
         switch (message.id) {
         case 'register':
             Connection.register(sessionId, message.name, ws, message.state);
-            break;
+        break;
         case 'call':
             Connection.call(sessionId, message.from, message.to, message.sdpOffer, message.state);
-            break;
+        break;
         case 'incomingCallResponse':
-            Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.sdpOffer, message.state, ws);
-            break;
+            Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.state, ws);
+        break;
         case 'stop':
             Connection.stop(sessionId, message.from, message.to);
-            break;
+        break;
         case 'onIceCandidate':
             Connection.onIceCandidate(sessionId, message.candidate, message.to, message.from);
             console.log('onIceCandidate', message)
-            break;
+        break;
         case 'peerConnected':
             Connection.peerConnected(sessionId, message.from, message.to);
-            break;
+        break;
+        case 'description':
+            const callee = UserRegistry.getByName(message.to);
+            const msg = {
+                id: 'description',
+                description: message.description,
+                from: message.from
+            }
+            callee.sendMessage(msg);
+        break;
         default:
             ws.send(JSON.stringify({
                 id: 'error',
