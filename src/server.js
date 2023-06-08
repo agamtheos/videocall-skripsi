@@ -98,7 +98,8 @@ wss.on('connection', function (ws) {
             Connection.peerConnected(sessionId, message.from, message.to);
         break;
         case 'description':
-            const callee = UserRegistry.getByName(message.to);
+            const caller = UserRegistry.getById(sessionId)
+            const callee = UserRegistry.getByName(message.to) ? UserRegistry.getByName(message.to) : UserRegistry.getByName(caller.peer);
             const msg = {
                 id: 'description',
                 description: message.description,
