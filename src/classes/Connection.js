@@ -13,7 +13,7 @@ const CandidatesQueue = new CandidatesQueueClass();
 const MediaPipeline = new MediaPipelineClass();
 
 module.exports = {
-    register(id, name, ws, state, callback) {
+    register(id, name, ws, state, role, callback) {
         function onError(error) {
             ws.send(JSON.stringify({id:'registerResponse', response : 'rejected ', message: error}));
         }
@@ -25,8 +25,30 @@ module.exports = {
         if (UserRegistry.getByName(name)) {
             return onError("User " + name + " is already registered");
         }
-    
-        UserRegistry.register(new UserSessionClass(id, name, ws, state));
+
+        UserRegistry.register(new UserSessionClass(id, name, ws, state, role));
+
+        if (role === 'admin') {
+            const UserActive = UserRegistry.getAllAdmins();
+            const UserForUpdate = UserRegistry.getAllClient();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseClient',
+                    users: UserActive
+                })
+            })
+        }
+
+        if (role === 'client') {
+            const UserActive = UserRegistry.getAllClient();
+            const UserForUpdate = UserRegistry.getAllAdmins();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseAdmin',
+                    users: UserActive
+                })
+            })
+        }
         try {
             ws.send(JSON.stringify({id: 'registerResponse', response: 'accepted', name: name}));
         } catch(exception) {

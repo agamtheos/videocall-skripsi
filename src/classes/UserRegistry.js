@@ -2,6 +2,12 @@ const userRegistry = {};
 const userRegistryByUsername = {};
 
 module.exports = function Registry() {
+    this.getAllAdmins = () => {
+        return Object.values(userRegistry).filter(user => user.role === 'admin')
+    }
+    this.getAllClient = () => {
+        return Object.values(userRegistry).filter(user => user.role === 'client')
+    }
     this.getById = (id) => {
         return userRegistry[id];
     }

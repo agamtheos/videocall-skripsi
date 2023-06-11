@@ -69,8 +69,31 @@ wss.on('connection', function (ws) {
 
     ws.on('close', async function () {
         console.log('Connection ' + sessionId + ' closed');
+        const user = UserRegistry.getById(sessionId);
         Connection.stop(sessionId);
         UserRegistry.unregister(sessionId);
+
+        if (user.role === 'admin') {
+            const UserActive = UserRegistry.getAllAdmins();
+            const UserForUpdate = UserRegistry.getAllClient();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseClient',
+                    users: UserActive
+                })
+            })
+        }
+
+        if (user.role === 'client') {
+            const UserActive = UserRegistry.getAllClient();
+            const UserForUpdate = UserRegistry.getAllAdmins();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseAdmin',
+                    users: UserActive
+                })
+            })
+        }
     });
 
     ws.on('message', function (_message) {
@@ -78,41 +101,55 @@ wss.on('connection', function (ws) {
         console.log('Connection ' + sessionId + ' received message ', message);
 
         switch (message.id) {
-        case 'register':
-            Connection.register(sessionId, message.name, ws, message.state);
-        break;
-        case 'call':
-            Connection.call(sessionId, message.from, message.to, message.sdpOffer, message.state);
-        break;
-        case 'incomingCallResponse':
-            Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.state, ws);
-        break;
-        case 'stop':
-            Connection.stop(sessionId, message.from, message.to);
-        break;
-        case 'onIceCandidate':
-            Connection.onIceCandidate(sessionId, message.candidate, message.to, message.from);
-            console.log('onIceCandidate', message)
-        break;
-        case 'peerConnected':
-            Connection.peerConnected(sessionId, message.from, message.to);
-        break;
-        case 'description':
-            const caller = UserRegistry.getById(sessionId)
-            const callee = UserRegistry.getByName(message.to) ? UserRegistry.getByName(message.to) : UserRegistry.getByName(caller.peer);
-            const msg = {
-                id: 'description',
-                description: message.description,
-                from: message.from
-            }
-            callee.sendMessage(msg);
-        break;
-        default:
-            ws.send(JSON.stringify({
-                id: 'error',
-                message: 'Invalid message ' + message
-            }));
+            case 'getListUsersAdmin':
+                const UserActive = UserRegistry.getAllAdmins();
+                ws.send(JSON.stringify({
+                    id: 'listUserResponse',
+                    users: UserActive
+                }))
             break;
+            case 'getListUsersClient':
+                const UserActiveClient = UserRegistry.getAllClient();
+                ws.send(JSON.stringify({
+                    id: 'listUserResponse',
+                    users: UserActiveClient
+                }))
+            break;
+            case 'register':
+                Connection.register(sessionId, message.name, ws, message.state, message.role);
+            break;
+            case 'call':
+                Connection.call(sessionId, message.from, message.to, message.sdpOffer, message.state);
+            break;
+            case 'incomingCallResponse':
+                Connection.incomingCallResponse(sessionId, message.from, message.callResponse, message.state, ws);
+            break;
+            case 'stop':
+                Connection.stop(sessionId, message.from, message.to);
+            break;
+            case 'onIceCandidate':
+                Connection.onIceCandidate(sessionId, message.candidate, message.to, message.from);
+                console.log('onIceCandidate', message)
+            break;
+            case 'peerConnected':
+                Connection.peerConnected(sessionId, message.from, message.to);
+            break;
+            case 'description':
+                const caller = UserRegistry.getById(sessionId)
+                const callee = UserRegistry.getByName(message.to) ? UserRegistry.getByName(message.to) : UserRegistry.getByName(caller.peer);
+                const msg = {
+                    id: 'description',
+                    description: message.description,
+                    from: message.from
+                }
+                callee.sendMessage(msg);
+            break;
+            default:
+                ws.send(JSON.stringify({
+                    id: 'error',
+                    message: 'Invalid message ' + message
+                }));
+                break;
         }
     });
 });
