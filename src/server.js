@@ -73,7 +73,7 @@ wss.on('connection', function (ws) {
         Connection.stop(sessionId);
         UserRegistry.unregister(sessionId);
 
-        if (user.role === 'admin') {
+        if (user?.role === 'admin') {
             const UserActive = UserRegistry.getAllAdmins();
             const UserForUpdate = UserRegistry.getAllClient();
             UserForUpdate.forEach(user => {
@@ -84,7 +84,7 @@ wss.on('connection', function (ws) {
             })
         }
 
-        if (user.role === 'client') {
+        if (user?.role === 'client') {
             const UserActive = UserRegistry.getAllClient();
             const UserForUpdate = UserRegistry.getAllAdmins();
             UserForUpdate.forEach(user => {

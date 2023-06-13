@@ -179,8 +179,9 @@ module.exports = {
     },
     stop(sessionId, from, to) {
         let stoppedUser;
+        let stopperUser;
         if (to) {
-            const stopperUser = UserRegistry.getById(sessionId);
+            stopperUser = UserRegistry.getById(sessionId);
             stoppedUser = UserRegistry.getByName(stopperUser.peer) ? UserRegistry.getByName(stopperUser.peer) : UserRegistry.getByName(to);
         }
 
@@ -193,6 +194,28 @@ module.exports = {
         }
 
         if (stoppedUser) UserRegistry.unregister(stoppedUser.id);
+        
+        if (stopperUser?.role === 'admin') {
+            const UserActive = UserRegistry.getAllAdmins();
+            const UserForUpdate = UserRegistry.getAllClient();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseClient',
+                    users: UserActive
+                })
+            })
+        }
+
+        if (stopperUser?.role === 'client') {
+            const UserActive = UserRegistry.getAllClient();
+            const UserForUpdate = UserRegistry.getAllAdmins();
+            UserForUpdate.forEach(user => {
+                user.sendMessage({
+                    id: 'updateListUserResponseAdmin',
+                    users: UserActive
+                })
+            })
+        }
         UserRegistry.unregister(sessionId);
     },
     onIceCandidate(sessionId, _candidate, to, from) {
