@@ -31,6 +31,4 @@ module.exports = function KurentoClient() {
     }
 
     this.get = () => kurentoClient
-
-    // this.add = (client) => 
 }

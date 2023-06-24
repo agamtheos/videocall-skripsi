@@ -99,18 +99,6 @@ module.exports = {
             } catch(exception) {
                 rejectCause = "Error " + exception;
             }
-
-            // let msg = {
-            //     id: 'callResponse',
-            //     response: 'accepted',
-            //     from: from,
-            //     to: to,
-            // }
-            // try {
-            //     caller.sendMessage(msg);
-            // } catch(exception) {
-            //     rejectCause = "Error " + exception;
-            // }
         }
         let message  = {
             id: 'callResponse',
@@ -194,7 +182,7 @@ module.exports = {
         }
 
         if (stoppedUser) UserRegistry.unregister(stoppedUser.id);
-        
+
         if (stopperUser?.role === 'admin') {
             const UserActive = UserRegistry.getAllAdmins();
             const UserForUpdate = UserRegistry.getAllClient();
@@ -222,46 +210,11 @@ module.exports = {
         const user = UserRegistry.getById(sessionId)
         const peer = UserRegistry.getByName(user.peer);
 
-        // always loop to check peer.state === 'accept_calling' then send candidate
-        if (peer.state === 'req_calling') {
-            console.log('Adding Candidates in Request State')
-            CandidatesQueue.addEmptyCandidateQueue(user.name);
-            CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
-            // break;
+        const message = {
+            id: 'iceCandidate',
+            candidate: _candidate
         }
-
-        // if user state === 'acc_calling' then send candidate
-        if (user.state === 'acc_calling') {
-            console.log('Sending Candidates in Accept State')
-            const candidates = CandidatesQueue.getCandidateQueueById(user.name);
-            // send candidate that come late
-            if (candidates?.length > 0) {
-                for (let i = 0; i < candidates.length; i++) {
-                    const message = {
-                        id: 'iceCandidate',
-                        candidate: candidates[i]
-                    }
-                    peer.sendMessage(message);
-                }
-            }
-            
-            // send candidate that come right away
-            const msessage = {
-                id: 'iceCandidate',
-                candidate: _candidate
-            }
-            peer.sendMessage(msessage);
-        }
-        // const message = {
-        //     id: 'iceCandidate',
-        //     candidate: _candidate
-        // }
-        // peer.sendMessage(message);
-
-        // if (user.state === 'req_calling') {
-        //     CandidatesQueue.addEmptyCandidateQueue(user.name);
-        //     CandidatesQueue.addCandidateQueueWithData(user.name, _candidate);
-        // }
+        peer.sendMessage(message);
     },
     peerConnected(sessionId, from, to) {
         const user = UserRegistry.getById(sessionId);
