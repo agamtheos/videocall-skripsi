@@ -83,10 +83,10 @@ module.exports = {
             console.log('Processing Call')
 
             caller.peer = to;
-            caller.state = state;
+            caller.state = state || 'IN_CALL';
 
             callee.peer = from;
-            callee.state = state;
+            callee.state = state || 'IN_CALL';
 
             let message = {
                 id: 'incomingCall',

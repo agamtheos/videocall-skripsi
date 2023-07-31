@@ -39,33 +39,13 @@ controller.registerUser = async (req, res) => {
 }
 
 controller.loginUser = async (req, res) => {
-    const { username, password } = req.body;
+    const { username, role } = req.body;
     try {
-        const user = await User.findOne({
-            where: {
-                username: username
-            }
-        })
-
-        if (!user) return res.API.error(RESPONSE_MESSAGE.not_found, 404)
-
-        const isMatch = await encrypt.comparePassword(password, user.password)
-
-        if (!isMatch) return res.API.error(RESPONSE_MESSAGE.invalid_password, 400)
-
-        const token = await encrypt.generateToken(user.id, user.username, user.role)
-
-        await User.update({
-            is_online: true
-        }, {
-            where: {
-                username: username
-            }
-        })
+        const token = await encrypt.generateToken(username, role)
 
         const data = {
             token: token,
-            role: user.role
+            role: role
         }
 
         return res.API.success(data, 200)

@@ -14,8 +14,6 @@ const Connection = require('./classes/Connection');
 const response = require('./helpers/response');
 const env = require('./config/env');
 
-require('./config/database')
-
 const UserRegistry = new UserRegistryClass();
 
 let idCounter = 0;
@@ -103,6 +101,7 @@ wss.on('connection', function (ws) {
         switch (message.id) {
             case 'getListUsersAdmin':
                 const UserActive = UserRegistry.getAllAdmins();
+                console.log('UserActive', UserActive)
                 ws.send(JSON.stringify({
                     id: 'listUserResponse',
                     users: UserActive
@@ -114,6 +113,38 @@ wss.on('connection', function (ws) {
                     id: 'listUserResponse',
                     users: UserActiveClient
                 }))
+            break;
+            case 'getListStateAdmin':
+                const UserActiveStateAdmin = UserRegistry.getAllAdmins();
+                const UserForUpdateAdmin = UserRegistry.getAllClient();
+                UserForUpdateAdmin.forEach(user => {
+                    user.sendMessage({
+                        id: 'updateListUserResponseClient',
+                        users: UserActiveStateAdmin
+                    })
+                })
+                UserActiveStateAdmin.forEach(user => {
+                    user.sendMessage({
+                        id: 'updateListUserResponseAdmin',
+                        users: UserForUpdateAdmin
+                    })
+                })
+            break;
+            case 'getListStateClient':
+                const UserActiveStateClient = UserRegistry.getAllClient();
+                const UserForUpdateClient = UserRegistry.getAllAdmins();
+                UserForUpdateClient.forEach(user => {
+                    user.sendMessage({
+                        id: 'updateListUserResponseAdmin',
+                        users: UserActiveStateClient
+                    })
+                })
+                UserActiveStateClient.forEach(user => {
+                    user.sendMessage({
+                        id: 'updateListUserResponseClient',
+                        users: UserForUpdateClient
+                    })
+                })
             break;
             case 'register':
                 Connection.register(sessionId, message.name, ws, message.state, message.role);
