@@ -15,6 +15,3 @@ else
     npm install
 fi
 
-echo "starting server..."
-npm run start
-
