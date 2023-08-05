@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "postinstall": "cd static && bower install",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },

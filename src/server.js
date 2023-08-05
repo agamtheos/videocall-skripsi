@@ -184,5 +184,3 @@ wss.on('connection', function (ws) {
         }
     });
 });
-
-app.use(express.static(path.join(process.cwd(), 'static')));
