@@ -4,6 +4,14 @@ if type node > /dev/null 2>&1 && which node > /dev/null 2>&1 ;then
     node -v
     echo "nodeJs is installed, skipping..."
 else
+    if [[ "$OSTYPE" == "cygwin" ]]; then
+        curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+
+        echo "NodeJs is installed"
+        echo node -v
+    else 
+    
     echo "installing nodeJs...  please wait..."
 
     # Install nvm using curl
