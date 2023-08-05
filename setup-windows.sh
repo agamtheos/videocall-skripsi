@@ -11,7 +11,7 @@ echo -e "PORT=3030\nNODE_ENV=development\nJWT_SECRET='secret'" > .env
 if [ -d "node_modules" ]; then
     echo "node_modules already exists... skipping..."
 else
-    echo "installing dependencies..."
+    echo "installing dependencies for backend... please wait..."
     npm install
 fi
 
